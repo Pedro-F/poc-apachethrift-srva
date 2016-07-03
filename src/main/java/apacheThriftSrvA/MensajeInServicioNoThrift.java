@@ -25,9 +25,6 @@ public class MensajeInServicioNoThrift {
 	cabecera.put("Cadena", "Zara");
 	cabecera.put("UID", UUID.randomUUID().toString());
 	
-	//traza de id
-	System.out.print("Petición con UID: " + cabecera.get("UID"));
-	
 	// Construimos el body
 	Map<String, String> cuerpo = new HashMap<String, String>();
 	cuerpo.put("TipoPrenda", peticionEntrada.getTipoPrenda().toUpperCase());
