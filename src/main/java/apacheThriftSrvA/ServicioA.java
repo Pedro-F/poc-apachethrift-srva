@@ -10,6 +10,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
@@ -19,10 +20,21 @@ import org.springframework.web.client.RestTemplate;
 public class ServicioA {
 
 	@RequestMapping(value = "/servicioA", method = RequestMethod.POST)
-	public @ResponseBody PeticionSalida servicioAThrift(@RequestBody PeticionEntrada peticionEntrada) {
+	public @ResponseBody PeticionSalida servicioAThrift(@RequestBody PeticionEntrada peticionEntrada,
+											@RequestParam(value="param1", defaultValue="1") String size) {
 
 		PeticionSalida responseMessage = new PeticionSalida();
 		long iniTime = System.currentTimeMillis();
+		long finTime = 0;
+		long mediaTime = 0;
+		int tamanio;
+		
+		try{
+			tamanio = Integer.parseInt(size);
+		}
+		catch(Exception e){
+			tamanio = 1;
+		}
 		
 		try {
 
@@ -31,9 +43,17 @@ public class ServicioA {
 
 			// invocamos al  microservicio servicioB, enviandos el bean formateado en rest
 			RestTemplate restTemplate = new RestTemplate();
-			MensajeOutServicioNoThrift outServicioB = restTemplate.postForObject("http://no-thrift-srvb:8080/servicioB",
+			MensajeOutServicioNoThrift outServicioB = null;
+			
+			iniTime = System.currentTimeMillis();
+	        
+			for(int i = 0;i<tamanio;i++){
+				outServicioB = restTemplate.postForObject("http://no-thrift-srvb:8080/servicioB",
 																				 inServicioB, 
 																				 MensajeOutServicioNoThrift.class);
+			}
+			
+			finTime = System.currentTimeMillis();
 
 			// Tratamos la salida del servicioB para construir la la salida del servicioA
 			responseMessage = convertMensajeOutServicioNoThrift_TO_PeticionSalida(outServicioB);
@@ -43,7 +63,17 @@ public class ServicioA {
 			e.printStackTrace();
 
 		}
-		System.out.println(".   FIN ServicioA.  ts = {" + (System.currentTimeMillis() - iniTime) + "}");
+		
+		if ((finTime > iniTime) && (tamanio > 0)){
+			mediaTime = (finTime - iniTime)/tamanio;
+			System.out.println(".   FIN ServicioA [HTTP].  Se han lanzado " + tamanio + " Peticiones " +
+			"En un tiempo de " + (finTime - iniTime) + " Milisegundos. La media es " + mediaTime + " Milisegundos");
+		}
+		else{
+			System.out.println(".   FIN ServicioA. Numero de ejecuciones = " + tamanio +
+					"Tiempo inicial = " + iniTime + ", Tiempo final = " + finTime + ".");
+		}
+		
 		return responseMessage;
 	}
 	
