@@ -29,6 +29,7 @@ public class ServicioA {
 		long mediaTime = 0;
 		int tamanio;
 		
+		
 		try{
 			tamanio = Integer.parseInt(size);
 		}
