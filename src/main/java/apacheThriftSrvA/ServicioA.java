@@ -38,10 +38,10 @@ public class ServicioA {
 		
 		try {
 
-			// instanciamos el bean de llamada al servicio B con los datos de llamada al servicioA
+			// instance of input servicioB from input servicioA
 			MensajeInServicioNoThrift inServicioB = new MensajeInServicioNoThrift(peticionEntrada);
 
-			// invocamos al  microservicio servicioB, enviandos el bean formateado en rest
+			// invoke microservice B by HTTP-Rest
 			RestTemplate restTemplate = new RestTemplate();
 			MensajeOutServicioNoThrift outServicioB = null;
 			
@@ -55,7 +55,7 @@ public class ServicioA {
 			
 			finTime = System.currentTimeMillis();
 
-			// Tratamos la salida del servicioB para construir la la salida del servicioA
+			// build servicioA output from servicioB response
 			responseMessage = convertMensajeOutServicioNoThrift_TO_PeticionSalida(outServicioB);
 
 		} catch (Exception e) {
@@ -84,14 +84,14 @@ public class ServicioA {
 	 */
 	public PeticionSalida convertMensajeOutServicioNoThrift_TO_PeticionSalida(MensajeOutServicioNoThrift outServicioB){
 		
-		// instanciamos una lista de prendas 
+		// prendas list instance 
 		List<Prenda> prendas = new ArrayList<Prenda>();
 		Prenda prenda = null;
 		
-		//instanciamos la una lista de PrendaNoThrift para extraer los datos de la llamada al servicioB
+		//PrendaNoThrift list instance to extract servicioB data
 		List<PrendaNoThrift> prendasNoThrift = outServicioB.getCuerpo().get("Prendas");
 		
-		// Si tiene contenido extraemos las prendas y las ponemos en la lista
+		// If is not empty, we put prendaNoThrift on prendas list
 		if (prendasNoThrift != null) {
 			for (PrendaNoThrift prendaNoThrift : prendasNoThrift) {
 				prenda = new Prenda();
@@ -105,11 +105,11 @@ public class ServicioA {
 			}
 		}
 
-		// lo ponemos en un map para el cuerpo del mensaje PeticionSalida (servicioA)
+		// Create map to build response body of servicioA
 		Map<String, List<Prenda>> cuerpoSalida = new HashMap<String, List<Prenda>>();
 		cuerpoSalida.put("Prendas", prendas);
 		
-		// Retornamos una PeticionSalida con header, body y aviso
+		// Build & Return PeticionSalida
 		return new PeticionSalida(outServicioB.getCabecera(), cuerpoSalida, outServicioB.getAviso());
 	}
 	
